@@ -1,57 +1,47 @@
 <template>
-  <div>
-    <v-dialog v-model="dialog" max-width="600px">
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn v-bind="attrs" v-on="on"> Create a new project </v-btn>
-      </template>
-      <v-card>
-        <v-card-title>
-          <span class="text-h5">New Project</span>
-        </v-card-title>
-        <v-card-text>
-          <v-container>
-            <v-form ref="form">
-              <v-text-field
-                prepend-icon="mdi-folder"
-                label="标题"
-                required
-                :rules="titleRules"
-                v-model="title"
-              >
-              </v-text-field>
-              <v-textarea
-                label="内容"
-                prepend-icon="mdi-pencil"
-                hint=""
-                rows="1"
-                auto-grow
-                v-model="content"
-              >
-              </v-textarea>
-            </v-form>
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="blue darken-1" text @click="clear">Clear up</v-btn>
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="dialog = false">
-            Cancel
-          </v-btn>
-          <v-btn v-bind="sumbitBtnProp" @click="submmit" :loading="loading">
-            {{ text }}
-            <v-icon v-if="status">mdi-check-circle</v-icon>
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+  <v-card>
+    <v-card-title class="pb-0 pt-3">
+      <span class="text-subheading-2">发表新帖子</span>
+    </v-card-title>
+    <v-card-text class="pb-0">
+      <v-container class="pa-0">
+        <v-form ref="form">
+          <v-text-field
+            prepend-icon="mdi-folder"
+            label="标题"
+            required
+            :rules="titleRules"
+            v-model="title"
+          >
+          </v-text-field>
+          <v-textarea
+            label="内容"
+            prepend-icon="mdi-pencil"
+            hint=""
+            rows="3"
+            auto-grow
+            v-model="content"
+          >
+          </v-textarea>
+        </v-form>
+      </v-container>
+    </v-card-text>
+    <v-card-actions>
+      <v-btn color="blue darken-1" text @click="clear">清空</v-btn>
+      <v-spacer></v-spacer>
+      <v-btn color="blue darken-1" text @click="$emit('close')"> 取消 </v-btn>
+      <v-btn v-bind="sumbitBtnProp" @click="submit" :loading="loading">
+        {{ text }}
+        <v-icon v-if="status">mdi-check-circle</v-icon>
+      </v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
 export default {
   data() {
     return {
-      dialog: false,
       title: "",
       content: "",
       loading: false,
@@ -63,8 +53,10 @@ export default {
         color: "green lighten-1",
       },
       status: false,
-      text: "submit",
-      titleRules: [(v) => v.length > 3 || "title's length must larger than 3"],
+      text: "发布",
+      titleRules: [
+        (v) => (v.length > 3 && v.length < 64) || "标题长度须在5~64个字内",
+      ],
     };
   },
   computed: {
@@ -73,7 +65,7 @@ export default {
     },
   },
   methods: {
-    submmit() {
+    submit() {
       if (!this.$refs.form.validate()) {
         return;
       }
@@ -85,11 +77,11 @@ export default {
       }).then(() => {
         this.loading = false;
         this.status = true;
-        this.text = "success";
+        this.text = "成功";
         setTimeout(() => {
-          this.text = "submit";
+          this.text = "提交";
           this.status = false;
-          this.dialog = false;
+          this.$emit("close");
         }, 1000);
       });
     },

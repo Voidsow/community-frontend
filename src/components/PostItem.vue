@@ -1,11 +1,11 @@
 <template>
   <!-- <v-btn text block x-large > -->
   <!-- </v-btn> -->
-  <v-card class="px-2 px-md-4 py-5 no-border" flat min-height="70">
-    <v-row align-content="center">
+  <v-card flat class="py-5">
+    <v-row>
       <!-- 左侧头像 -->
-      <v-col cols="1" class="pa-0 mx-0" align-self="start">
-        <v-avatar size="35" color="grey" class="mx-0">
+      <v-col cols="2" sm="1" class="pt-1 px-sm-1 px-md-1 px-lg-4 px-xl-6"> 
+        <v-avatar size="35" color="grey" >
           <router-link :to="`/user/${post.uid}`">
             <img :src="`/user/${post.uid}/header`" />
           </router-link>
@@ -13,7 +13,7 @@
       </v-col>
       <!-- 中间内容 -->
       <v-hover v-slot="{ hover }">
-        <v-col :class="{ 'on-hover': hover }">
+        <v-col cols="8" sm="10" :class="{ 'on-hover': hover }">
           <router-link :to="`/post/${post.id}`">
             <v-row class="text-subtitle-2 black--text text--darken-2">
               {{ post.title }}
@@ -25,7 +25,7 @@
               发布于 {{ dateFormat(post.gmtCreate) }}
             </v-row>
             <v-row class="text-caption grey--text text--darken-1">
-              <span class="d-inline text-truncate" style="max-width: 500px">
+              <span class="d-inline text-truncate" style="max-width: 600px">
                 {{ post.content }}
               </span>
             </v-row>
@@ -33,9 +33,8 @@
         </v-col>
       </v-hover>
 
-      <v-spacer></v-spacer>
       <!-- 右边操作栏 -->
-      <v-col cols="1" class="mr-0 pr-0">
+      <v-col cols="2" sm="1" >
         <v-row>
           <v-btn text x-small>
             <v-icon small>mdi-comment-outline</v-icon>{{ post.commentNum }}
@@ -54,6 +53,7 @@
 
 <script>
 import { dateFormat } from "@/utils";
+// import { setPost } from '@/store/mutation-type';
 export default {
   name: "PostItem",
   props: { post: Object },
@@ -69,6 +69,10 @@ export default {
     thumbUp() {
       this.like = !this.like;
     },
+    setPost(e) {
+      console.log(e.target);
+      // this.$store.commit(setPost,this.post);
+    },
   },
   computed: {
     style() {
@@ -79,12 +83,6 @@ export default {
 </script>
 
 <style>
-.no-border {
-  border: none;
-}
-.no-border:hover {
-  background-color: rgb(238, 238, 238);
-}
 a {
   color: black !important;
   text-decoration: none;

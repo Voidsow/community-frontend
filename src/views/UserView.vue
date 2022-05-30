@@ -1,5 +1,6 @@
 <template>
-    <v-container>
-        this is a user.
-    </v-container>
+  <div></div>
 </template>
+
+<style>
+</style>
