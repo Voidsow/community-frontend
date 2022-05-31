@@ -4,12 +4,12 @@
   <v-card flat class="py-5">
     <v-row>
       <!-- 左侧头像 -->
-      <v-col cols="2" sm="1" class="pt-1 px-sm-1 px-md-1 px-lg-4 px-xl-6"> 
-        <v-avatar size="35" color="grey" >
-          <router-link :to="`/user/${post.uid}`">
-            <img :src="`/user/${post.uid}/header`" />
-          </router-link>
-        </v-avatar>
+      <v-col cols="2" sm="1" class="pt-1 px-sm-1 px-md-1 px-lg-4 px-xl-6">
+        <router-link :to="`/user/${post.uid}`">
+          <v-avatar size="35" color="grey">
+            <img :src="user.headerUrl" />
+          </v-avatar>
+        </router-link>
       </v-col>
       <!-- 中间内容 -->
       <v-hover v-slot="{ hover }">
@@ -19,10 +19,12 @@
               {{ post.title }}
             </v-row>
             <v-row class="text-caption grey--text">
-              <router-link :to="`/user/${post.uid}`">
-                用户{{ post.uid }}
-              </router-link>
-              发布于 {{ dateFormat(post.gmtCreate) }}
+              <span>
+                <router-link :to="`/user/${post.uid}`">
+                  {{ user.username }}
+                </router-link>
+                发布于 {{ dateFormat(post.gmtCreate) }}
+              </span>
             </v-row>
             <v-row class="text-caption grey--text text--darken-1">
               <span class="d-inline text-truncate" style="max-width: 600px">
@@ -34,7 +36,7 @@
       </v-hover>
 
       <!-- 右边操作栏 -->
-      <v-col cols="2" sm="1" >
+      <v-col cols="2" sm="1">
         <v-row>
           <v-btn text x-small>
             <v-icon small>mdi-comment-outline</v-icon>{{ post.commentNum }}
@@ -43,7 +45,7 @@
         <v-row>
           <v-btn v-bind="style" text x-small @click.stop="thumbUp">
             <v-icon small>mdi-thumb-up-outline</v-icon>
-            {{ post.likeNum }}&nbsp;&nbsp;
+            {{ like }}&nbsp;&nbsp;
           </v-btn>
         </v-row>
       </v-col>
@@ -53,26 +55,18 @@
 
 <script>
 import { dateFormat } from "@/utils";
-// import { setPost } from '@/store/mutation-type';
 export default {
   name: "PostItem",
-  props: { post: Object },
+  props: { post: Object, user: Object, like: Number },
+  created() {},
   data() {
     return {
-      like: false,
       normal: { text: true },
       active: { color: "primary" },
     };
   },
   methods: {
     dateFormat,
-    thumbUp() {
-      this.like = !this.like;
-    },
-    setPost(e) {
-      console.log(e.target);
-      // this.$store.commit(setPost,this.post);
-    },
   },
   computed: {
     style() {

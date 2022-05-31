@@ -1,5 +1,6 @@
 /* jshint esversion:6 */
 
 export const setPost = 'setPost';
-export const incrPostLike = 'incrPostLike';
-
+export const likePost = 'likePost';
+export const authorize = 'authorize';
+export const logout = 'logout';

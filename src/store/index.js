@@ -6,23 +6,17 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    post: undefined,
-    user: {
-      id: 1,
-      headerUrl: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-      username: "Taro",
-    },
+    user: null,
   },
   getters: {
   },
   mutations: {
-    setPost(state, post) {
-      state.post = post;
+    authorize(state, user) {
+      state.user = user;
     },
-    incrPostLike(state) {
-      state.post.likeNum += state.post.like ? -1 : 1;
-      state.post.like = !state.post.like;
-    },
+    logout(state) {
+      state.user = null;
+    }
   },
   actions: {
 

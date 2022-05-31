@@ -1,20 +1,23 @@
 <template>
   <v-list-item class="father">
-    <router-link :to="userRoute(user.id)" class="mr-5 ml-3 child">
+    <router-link :to="userRoute(comment.user.id)" class="mr-5 ml-3 child">
       <v-row justify="start">
-        <v-avatar size="40"> <img :src="user.headerUrl" /> </v-avatar>
+        <v-avatar size="40"> <img :src="comment.user.headerUrl" /> </v-avatar>
       </v-row>
     </router-link>
 
     <v-list-item-content class="content">
       <v-list-item-subtitle>
-        <router-link :to="userRoute(user.id)">
-          <b> {{ user.username }}</b>
+        <router-link :to="userRoute(comment.user.id)">
+          <b> {{ comment.user.username }}</b>
         </router-link>
       </v-list-item-subtitle>
-      <div>
-        <router-link v-if="targetUser != null" :to="userRoute(targetUser.id)">
-          回复 <span class="blue--text">@{{ targetUser.username }} :</span>
+      <div class="my-2">
+        <router-link
+          v-if="comment.target != null"
+          :to="userRoute(comment.target.id)"
+        >
+          回复 <span class="blue--text">@{{ comment.target.username }} :</span>
         </router-link>
         {{ comment.content }}
       </div>
@@ -60,7 +63,7 @@ export default {
   components: {
     ClickableSpan,
   },
-  props: { comment: Object, user: Object, targetUser: Object },
+  props: { comment: Object },
   emit: ["like", "showReply"],
   data() {
     return {};

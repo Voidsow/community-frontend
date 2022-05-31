@@ -3,9 +3,10 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import IndexView from '../views/IndexView.vue';
 import PostView from "@/views/PostView.vue";
-import UserView from "@/views/UserView.vue";
+import ProfileView from "@/views/ProfileView.vue";
 import MessageView from "@/views/MessageView.vue";
 import MessageLineView from "@/views/MessageLineView.vue";
+import FollowView from "@/views/FollowView.vue";
 Vue.use(VueRouter);
 
 const routes = [
@@ -23,7 +24,14 @@ const routes = [
   {
     path: "/user/:id",
     name: "user",
-    component: UserView
+    component: ProfileView,
+    children: [
+      {
+        name: "follow",
+        path: "follow",
+        component: FollowView
+      }
+    ]
   },
   {
     path: "/message",
@@ -34,7 +42,7 @@ const routes = [
     path: "/message/to/:uid",
     name: "messages",
     component: MessageLineView
-  }
+  },
 ];
 
 const router = new VueRouter({
