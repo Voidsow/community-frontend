@@ -8,33 +8,58 @@
             class="align-end"
             src="https://cdn.pixabay.com/photo/2020/07/12/07/47/bee-5396362_1280.jpg"
           >
+            <!-- src="https://cdn.luogu.com.cn/upload/usericon/8457.png" -->
             <v-card-title class="white--text mt-8 align-center">
               <v-avatar size="60">
-                <img
-                  alt="user"
-                  src="https://cdn.pixabay.com/photo/2020/06/24/19/12/cabbage-5337431_1280.jpg"
-                />
+                <img alt="头像" :src="profile.user.headerUrl" />
               </v-avatar>
-              <span class="ml-3">John Doe</span>
+              <span class="ml-3">{{ profile.user.username }}</span>
               <v-spacer></v-spacer>
-              <v-btn class="mr-3">私信</v-btn>
-              <v-btn color="primary"><v-icon small>mdi-plus</v-icon>关注</v-btn>
+              <v-btn
+                :to="{ name: 'chat', query: { uid: profile.user.id } }"
+                color="rgba(0, 0, 0, 0.2)"
+                class="mr-3 white--text"
+              >
+                私信
+              </v-btn>
+              <v-btn
+                v-if="profile.isFollowed"
+                color="rgba(0, 0, 0, 0.2)"
+                class="white--text"
+              >
+                已关注
+              </v-btn>
+              <v-btn v-else color="primary">
+                <v-icon small>mdi-plus</v-icon>关注
+              </v-btn>
             </v-card-title>
           </v-img>
 
-          <v-card-text class="pb-0">
-            <v-row>
-              <clickable-span
-                v-for="route in routes"
-                @click="jumpTo(route.path)"
-                class="mx-1 pa-1 bottomBorder"
-                :key="'route' + route.text"
-                :text="route.text"
-              ></clickable-span>
+          <v-card-text class="py-0">
+            <v-row no-gutters justify="space-between">
+              <v-col>
+                <v-tabs>
+                  <v-tab
+                    v-for="route in routes"
+                    :key="route.text"
+                    :to="route.path"
+                  >
+                    {{ route.text }}
+                  </v-tab>
+                </v-tabs>
+              </v-col>
               <v-spacer></v-spacer>
-              <clickable-span text="关注"></clickable-span>
-              <clickable-span text="粉丝"></clickable-span>
-              <clickable-span text="点赞"></clickable-span>
+              <v-col class="d-flex justify-end" align-self="center">
+                <v-btn class="pa-0 ma-0" plain :ripple="false">
+                  <div>点赞<br />{{ profile.likeNum }}</div>
+                </v-btn>
+                <v-btn class="pa-0 ma-0" plain :ripple="false">
+                  <div>关注<br />{{ profile.followeeNum }}</div>
+                </v-btn>
+                <v-btn class="pa-0 ma-0" plain :ripple="false">
+                  <div>粉丝<br />{{ profile.followerNum }}</div>
+                </v-btn>
+              </v-col>
             </v-row>
           </v-card-text>
         </v-card>
@@ -45,43 +70,45 @@
 </template>
 
 <script>
-import ClickableSpan from "@/components/ClickableSpan.vue";
+import { getFetch, HOST } from "@/utils";
 export default {
-  components: { ClickableSpan },
   data() {
     return {
       routes: [
         { text: "动态", path: { name: "user", params: { id: 1 } } },
         { text: "关注", path: { name: "follow", params: { id: 1 } } },
       ],
+
+      profile: null,
     };
+  },
+  computed: {
+    follow() {
+      return this.profile.isFollowed ? "已关注" : "关注";
+    },
   },
   methods: {
     jumpTo(route) {
       this.$router.push(route);
     },
+    fetchData() {
+      getFetch(HOST + `user/${this.$route.params.id}`)
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code == 200) {
+            this.profile = resp.data;
+          }
+        });
+    },
+  },
+  mounted() {
+    this.fetchData();
   },
 };
 </script>
 
 <style scoped>
-/* @keyframes activatedBottom{
-  from{
-    border-bottom: 2px solid #3498db;
-  } to{
-    border-bottom: 3px solid #3498db;
-  }
-}
-.bottomBorder:hover {
-  animation:activatedBottom 1s;
-} */
-.bottomBorder:hover:not(.activate) {
-  border-bottom: 3px solid grey;
-}
-.bottomBorder {
-  border-bottom: 3px solid transparent;
-}
-.activate {
-  border-bottom-color: #3498db;
+.white-border {
+  border: 1em solid white;
 }
 </style>

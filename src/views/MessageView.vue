@@ -1,39 +1,69 @@
 <template>
-  <v-container>
-    <v-row justify="conter">
+  <v-container class="expand">
+    <v-row justify="center" class="expand">
       <v-spacer></v-spacer>
-      <v-col sm="8">
-        <v-card>
+      <v-col sm="8" class="expand">
+        <v-card v-if="!loading" class="expand mb-1">
           <v-list two-line>
             <v-subheader>
-              <v-span v-if="unread != 0">
-                <v-badge color="red" :content="unread">新消息</v-badge>
-              </v-span>
+              <span v-if="totalUnread != 0">
+                <v-badge inline color="red" :content="totalUnread">
+                  新消息
+                </v-badge>
+              </span>
               <span v-else>没有新消息</span>
             </v-subheader>
-            <template v-for="(item, index) in items">
-              <v-list-item :key="item.title">
-                <v-list-item-avatar>
-                  <v-img :src="item.avatar"></v-img>
-                </v-list-item-avatar>
+            <v-divider></v-divider>
+            <template v-for="(conversation, index) in conversations">
+              <v-list-item :key="`uid${conversation.talkTo.id}`">
+                <router-link
+                  :to="{ name: 'user', params: { id: conversation.talkTo.id } }"
+                >
+                  <v-list-item-avatar color="grey">
+                    <v-img :src="conversation.talkTo.headerUrl"></v-img>
+                  </v-list-item-avatar>
+                </router-link>
 
-                <v-list-item-content class="clickable" @click="toMessageLine">
-                  <v-list-item-title v-html="item.title"></v-list-item-title>
+                <v-list-item-content
+                  class="clickable"
+                  @click="toMessageLine(conversation.talkTo.id)"
+                >
+                  <v-list-item-title>
+                    {{ conversation.talkTo.username }}
+                  </v-list-item-title>
                   <v-list-item-subtitle
-                    v-html="item.subtitle"
+                    v-html="conversation.last.content"
                   ></v-list-item-subtitle>
                 </v-list-item-content>
-                <v-list-item-action class="clickable" @click="toMessageLine">
-                  <v-list-item-action-text class="grey--text"
-                    >时间</v-list-item-action-text
-                  >
-                  <v-badge content="2" inline color="red"></v-badge>
+                <v-list-item-action
+                  class="clickable"
+                  @click="toMessageLine(conversation.talkTo.id)"
+                >
+                  <v-list-item-action-text class="grey--text">
+                    {{ dateFormat(conversation.last.gmtCreate) }}
+                  </v-list-item-action-text>
+                  <v-badge
+                    v-if="conversation.unread != 0"
+                    :content="conversation.unread"
+                    inline
+                    color="red"
+                  ></v-badge>
+                  <span v-else></span>
                 </v-list-item-action>
               </v-list-item>
-              <v-divider v-if="index < items.length" :key="index"></v-divider>
+              <v-divider
+                v-if="index < conversations.length - 1"
+                :key="`divider${index}`"
+              ></v-divider>
             </template>
           </v-list>
         </v-card>
+        <v-pagination
+          v-model="page"
+          :length="sum"
+          :total-visible="pageNum"
+          @click="test"
+        ></v-pagination>
       </v-col>
       <v-spacer></v-spacer>
     </v-row>
@@ -41,45 +71,50 @@
 </template>
 
 <script>
+import { HOST, dateFormat, getFetch } from "@/utils";
 export default {
   data() {
     return {
-      unread: 9,
-      items: [
-        {
-          avatar: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-          title: "Brunch this weekend?",
-          subtitle: `<span class="text--primary">Ali Connors</span> &mdash; I'll be in your neighborhood doing errands this weekend. Do you want to hang out?`,
-        },
-        {
-          avatar: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-          title: 'Summer BBQ <span class="grey--text text--lighten-1">4</span>',
-          subtitle: `<span class="text--primary">to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I'm out of town this weekend.`,
-        },
-        {
-          avatar: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-          title: "Oui oui",
-          subtitle:
-            '<span class="text--primary">Sandra Adams</span> &mdash; Do you have Paris recommendations? Have you ever been?',
-        },
-        {
-          avatar: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-          title: "Birthday gift",
-          subtitle:
-            '<span class="text--primary">Trevor Hansen</span> &mdash; Have any ideas about what we should get Heidi for her birthday?',
-        },
-        {
-          avatar: "https://cdn.vuetifyjs.com/images/lists/5.jpg",
-          title: "Recipe to try",
-          subtitle:
-            '<span class="text--primary">Britta Holt</span> &mdash; We should eat this: Grate, Squash, Corn, and tomatillo Tacos.',
-        },
-      ],
+      totalUnread: 8,
+      conversations: null,
+      loading: true,
+      page: 1,
+      pageSize: 8,
+      sum: -1,
+      pageNum: 7,
     };
   },
+  mounted: () => {
+    this.fetchData();
+  },
   methods: {
-    toMessageLine() {
-      this.$router.push({ name: "messages", params: { uid: 2 } });
+    dateFormat,
+    toMessageLine(uid) {
+      this.$router.push({ name: "chat", query: { uid } });
+    },
+    fetchData() {
+      this.loading = true;
+      getFetch(HOST + `chat?page=${this.page}&size=${this.pageSize}`)
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code === 200) {
+            this.totalUnread = resp.data.totalUnread;
+            this.conversations = resp.data.conversations;
+            this.conversations.forEach((e) => {
+              e.last.gmtCreate = new Date(e.last.gmtCreate);
+            });
+            this.sum = resp.data.sum;
+            this.loading = false;
+          }
+        });
+    },
+  },
+  created() {
+    this.fetchData();
+  },
+  watch: {
+    page() {
+      this.fetchData();
     },
   },
 };
@@ -88,5 +123,8 @@ export default {
 <style scoped>
 .clickable:hover {
   cursor: pointer;
+}
+.expand {
+  height: 99.1%;
 }
 </style>

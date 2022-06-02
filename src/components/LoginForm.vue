@@ -28,8 +28,8 @@
               ></v-text-field>
             </v-col>
           </v-row>
-          <v-row no-gutters>
-            <v-col cols="6">
+          <v-row no-gutters justify="space-between">
+            <v-col cols="5" sm="auto">
               <v-text-field
                 v-model="captcha"
                 hide-details="auto"
@@ -143,7 +143,6 @@ export default {
 
 <style scoped>
 .captcha {
-  width: 150px;
   height: 56px;
 }
 .captcha:hover {

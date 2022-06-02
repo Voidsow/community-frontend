@@ -106,7 +106,7 @@ export default {
       this.fetchData();
     },
   },
-  created() {
+  mounted() {
     this.fetchData();
   },
 };

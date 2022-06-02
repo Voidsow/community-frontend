@@ -2,13 +2,16 @@
   <nav>
     <v-app-bar dense class="grey lighten-3" app>
       <v-app-bar-nav-icon @click="open = !open"></v-app-bar-nav-icon>
-      <v-toolbar-title class="text-uppercase">
-        <span class="font-weight-light">Café</span>
-        <span class="font-weight-bold"> Stella</span>
+      <v-toolbar-title>
+        <router-link :to="{ name: 'index' }">
+          <span class="font-weight-light">Café</span>
+          <span class="font-weight-bold"> Stella</span>
+        </router-link>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <register-form v-if="!logined"></register-form>
       <login-form v-if="!logined"></login-form>
+
       <v-menu v-if="logined" open-on-hover offset-y>
         <template v-slot:activator="{ on, attrs }">
           <router-link :to="{ name: 'user', params: { id: user.id } }">
@@ -16,7 +19,7 @@
               <v-avatar size="33" class="mr-1">
                 <img :src="user.headerUrl" />
               </v-avatar>
-              {{ user.username }}
+              <span>{{ user.username }}</span>
             </v-btn>
           </router-link>
         </template>
@@ -87,7 +90,11 @@ export default {
       open: false,
       items: [
         { title: "首页", icon: "mdi-home", route: "/" },
-        { title: "个人中心", icon: "mdi-account", route: "/user" },
+        {
+          title: "个人中心",
+          icon: "mdi-account",
+          route: `/user`,
+        },
         { title: "设置", icon: "mdi-cog", route: "/setting" },
         {
           title: "私信",
@@ -95,8 +102,14 @@ export default {
           route: "/message",
         },
       ],
+      HOST: HOST,
     };
   },
+  created() {
+    sessionStorage.setItem("sessionId", Math.random());
+    alert(sessionStorage.getItem("sessionId"));
+  },
+
   computed: {
     user() {
       return this.$store.state.user;
@@ -107,7 +120,7 @@ export default {
   },
   methods: {
     logout() {
-      alert('test')
+      alert("test");
       fetch(HOST + "logout")
         .then((resp) => resp.json())
         .then((resp) => {

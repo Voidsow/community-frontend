@@ -1,11 +1,11 @@
 <template>
-  <v-container class="expand pb-0">
-    <v-row justify="center" class="expand">
-      <v-col cols="12" sm="8" class="expand pb-0">
-        <v-card class="expand">
-          <v-row class="expand" no-gutters>
-            <v-col cols="12">
-              <v-list>
+  <v-container>
+    <v-row justify="center">
+      <v-col cols="12" sm="10" md="8">
+        <v-card v-if="!loading" elevation="8">
+          <v-row no-gutters>
+            <v-col>
+              <v-list :height="height" class="overflow-auto pb-0">
                 <!-- 根据发信人改变块内元素顺序 -->
                 <v-list-item
                   class="px-1"
@@ -44,9 +44,9 @@
                   single-line
                   solo
                 ></v-text-field>
-                <v-btn class="ml-1" color="primary" @click="sendMsg"
-                  >发送</v-btn
-                >
+                <v-btn class="ml-1" color="primary" @click="sendMsg">
+                  发送
+                </v-btn>
               </v-toolbar>
             </v-col>
           </v-row>
@@ -57,93 +57,32 @@
 </template>
 
 <script>
+import { getFetch, HOST, postFetch } from "@/utils";
 export default {
   data() {
     return {
       msg: "",
-      messages: [
-        {
-          id: 1,
-          speaker: 1,
-          listener: 2,
-          conversationId: "1-2",
-          content: "你好",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-        {
-          id: 1,
-          speaker: 2,
-          listener: 1,
-          conversationId: "1-2",
-          content: "你好",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-        {
-          id: 1,
-          speaker: 1,
-          listener: 2,
-          conversationId: "1-2",
-          content: "很高兴认识你",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-        {
-          id: 1,
-          speaker: 2,
-          listener: 1,
-          conversationId: "1-2",
-          content: "我也是",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-        {
-          id: 1,
-          speaker: 1,
-          listener: 2,
-          conversationId: "1-2",
-          content: "这周的天气真不错",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-        {
-          id: 1,
-          speaker: 2,
-          listener: 1,
-          conversationId: "1-2",
-          content: "是啊",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-        {
-          id: 1,
-          speaker: 1,
-          listener: 2,
-          conversationId: "1-2",
-          content: "周末一起出去玩怎么样？",
-          gmtCreate: new Date(),
-          status: 0,
-        },
-      ],
-      users: {
-        1: {
-          id: 1,
-          headerUrl: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-          username: "Taro",
-        },
-        2: {
-          id: 2,
-          headerUrl: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-          username: "Jack",
-        },
-      },
+      messages: null,
+      users: null,
+
+      loading: false,
     };
   },
   computed: {
     user() {
       return this.$store.state.user;
     },
+    talkToUid() {
+      return this.$route.query.uid;
+    },
+    height() {
+      return this.$vuetify.breakpoint.height - 125;
+    },
+  },
+  mounted() {
+    this.loading = true;
+    this.fetchData();
+    this.loading = false;
   },
   methods: {
     direciton(uid) {
@@ -156,16 +95,30 @@ export default {
       );
     },
     sendMsg() {
-      this.messages.push({
-        id: 1,
-        speaker: 1,
-        listener: 2,
-        conversationId: "1-2",
+      postFetch(HOST + "chat", {
+        listener: this.talkToUid,
         content: this.msg,
-        gmtCreate: new Date(),
-        status: 0,
-      });
-      this.msg = "";
+      })
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code == 200) {
+            this.messages.push(resp.data);
+            this.msg = "";
+          }
+        });
+    },
+    fetchData() {
+      getFetch(HOST + `chat/${this.talkToUid}`)
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code === 200) {
+            this.messages = resp.data.messages;
+            this.users = {
+              [this.talkToUid]: resp.data.talkTo,
+              [this.$store.state.user.id]: this.$store.state.user,
+            };
+          }
+        });
     },
   },
 };

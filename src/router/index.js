@@ -7,6 +7,7 @@ import ProfileView from "@/views/ProfileView.vue";
 import MessageView from "@/views/MessageView.vue";
 import MessageLineView from "@/views/MessageLineView.vue";
 import FollowView from "@/views/FollowView.vue";
+import TestView from "@/views/TestView.vue";
 Vue.use(VueRouter);
 
 const routes = [
@@ -39,10 +40,15 @@ const routes = [
     component: MessageView
   },
   {
-    path: "/message/to/:uid",
-    name: "messages",
+    path: "/chat",
+    name: "chat",
     component: MessageLineView
   },
+  {
+    path: "/test",
+    name: "test",
+    component: TestView
+  }
 ];
 
 const router = new VueRouter({

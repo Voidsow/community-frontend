@@ -17,3 +17,10 @@ export function postFetch(url, data) {
         body: JSON.stringify(data)
     });
 }
+
+export function getFetch(url) {
+    return fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+}

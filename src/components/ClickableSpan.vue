@@ -3,9 +3,7 @@
     <v-icon small :color="activate ? color : ''">
       {{ _icon }}
     </v-icon>
-    <span :class="textStyle">
-      {{ text }}
-    </span>
+    <span :class="textStyle" v-html="text"></span>
   </span>
 </template>
 
