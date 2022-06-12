@@ -28,7 +28,10 @@
                     </v-btn>
                   </template>
                   <v-sheet class="text-center">
-                    <post-form @close="sheet = !sheet"></post-form>
+                    <post-form
+                      @publish="publish"
+                      @close="sheet = !sheet"
+                    ></post-form>
                   </v-sheet>
                 </v-bottom-sheet>
               </v-col>
@@ -36,18 +39,20 @@
           </v-col>
         </v-row>
         <v-row justify="center">
-          <v-col sm="9" md="7" lg="8">
+          <v-col v-if="posts.length !== 0" sm="9" md="7" lg="8">
             <post
               v-for="(post, index) in posts"
               :key="post.id"
               :post="post"
               :user="users[index]"
-              :like="likes[index]"
+              @like="like"
               class="touch px-3"
             ></post>
           </v-col>
+          <span v-else class="my-10">没有找到相关帖子</span>
         </v-row>
         <v-pagination
+          v-if="length > 1"
           v-model="page"
           :length="length"
           total-visible="7"
@@ -61,7 +66,8 @@
 <script>
 import PostItem from "@/components/PostItem.vue";
 import PostForm from "@/components/PostForm.vue";
-import { HOST } from "@/utils";
+import { getFetch, HOST } from "@/utils";
+import { setQuery } from "@/store/mutation-type";
 export default {
   components: {
     post: PostItem,
@@ -69,9 +75,8 @@ export default {
   },
   data() {
     return {
-      posts: null,
+      posts: [],
       users: null,
-      likes: null,
       select: "推荐",
       rankBy: ["推荐", "最新"],
       sheet: false,
@@ -81,11 +86,29 @@ export default {
       loading: false,
     };
   },
+  computed: {
+    query() {
+      return this.$store.state.query;
+    },
+  },
   methods: {
-    submit() {},
+    like(data) {
+      data.post.likeNum = data.likeNum;
+      data.post.like = data.like;
+    },
+    publish(post) {
+      post.gmtCreate = new Date(post.gmtCreate);
+      this.posts.push(post);
+      this.users.push(this.$store.state.user);
+    },
     fetchData() {
       this.loading = true;
-      fetch(HOST + `?page=${this.page}&size=${this.pageSize}`)
+      let url =
+        HOST +
+        (this.query !== "" ? `search?q=${this.query}&` : "?") +
+        `page=${this.page}&size=${this.pageSize}`;
+      alert(url);
+      getFetch(url)
         .then((resp) => resp.json())
         .then((resp) => {
           let data = resp.data;
@@ -95,15 +118,18 @@ export default {
           if (this.posts !== null) console.log(this.posts.length);
           this.posts = data.posts;
           this.users = data.users;
-          this.likes = data.likes;
           this.length = data.lastPage;
           this.loading = false;
         });
+      this.$store.commit(setQuery, "");
     },
   },
   watch: {
     page() {
       this.fetchData();
+    },
+    query(newVal) {
+      if (newVal !== "") this.fetchData();
     },
   },
   mounted() {

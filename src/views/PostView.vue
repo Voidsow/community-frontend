@@ -6,17 +6,19 @@
         <v-card class="my-2">
           <v-list>
             <v-list-item>
-              <router-link :to="{ name: 'user', params: { id: author.id } }">
+              <router-link
+                :to="{ name: 'user', params: { id: author.user.id } }"
+              >
                 <v-list-item-avatar>
-                  <v-img :src="author.headerUrl"></v-img>
+                  <v-img :src="author.user.headerUrl"></v-img>
                 </v-list-item-avatar>
               </router-link>
               <v-list-item-content>
                 <v-list-item-title>
                   <router-link
-                    :to="{ name: 'user', params: { id: author.id } }"
+                    :to="{ name: 'user', params: { id: author.user.id } }"
                   >
-                    {{ author.username }}
+                    {{ author.user.username }}
                   </router-link>
                 </v-list-item-title>
                 <v-list-item-subtitle>
@@ -24,9 +26,11 @@
                 </v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action>
-                <v-btn color="primary"
-                  ><v-icon small>mdi-plus</v-icon>关注</v-btn
-                >
+                <follow-btn
+                  @follow="follow"
+                  :followed="author.followed"
+                  :uid="author.user.id"
+                ></follow-btn>
               </v-list-item-action>
             </v-list-item>
             <v-divider></v-divider>
@@ -59,6 +63,7 @@
               show
               :targetComment="null"
               :targetUser="null"
+              :atComment="null"
               @publish="pubComment"
             ></comment-box>
 
@@ -97,12 +102,14 @@
 import CommentView from "@/components/CommentView.vue";
 import CommentBox from "@/components/CommentBox.vue";
 import ClickableSpan from "@/components/ClickableSpan.vue";
+import FollowBtn from "@/components/FollowBtn.vue";
 import { dateFormat, HOST, postFetch } from "@/utils";
 export default {
   components: {
     CommentView,
     ClickableSpan,
     CommentBox,
+    FollowBtn,
   },
   data: () => ({
     post: null,
@@ -135,6 +142,7 @@ export default {
     },
   },
   watch: {
+    //登录后马上重新请求数据以更新点赞信息
     user() {
       this.fetchData();
     },
@@ -154,7 +162,9 @@ export default {
           }
         });
     },
-    dateFormat,
+    follow(followed) {
+      this.author.followed = followed;
+    },
     likeComment(entity) {
       this.likeOrNot(entity, this.COMMENT, entity.id);
     },
@@ -184,6 +194,7 @@ export default {
           this.loading = false;
         });
     },
+    dateFormat,
   },
 };
 </script>

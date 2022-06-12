@@ -76,7 +76,7 @@ export default {
       return this.$route.query.uid;
     },
     height() {
-      return this.$vuetify.breakpoint.height - 125;
+      return this.$vuetify.breakpoint.height - 120;
     },
   },
   mounted() {

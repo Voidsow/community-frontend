@@ -14,7 +14,7 @@
           :key="index"
           :comment="subComment"
           @like="$emit('updateLike', subComment)"
-          @showReply="showReply(subComment.user)"
+          @showReply="showReply(subComment)"
         >
         </comment-item>
         <!-- 回复框 -->
@@ -22,6 +22,7 @@
           :show="show"
           :targetComment="comment"
           :targetUser="targetUser"
+          :atComment="atComment"
           @publish="pubSub"
         ></comment-box>
       </v-list-item-content>
@@ -48,13 +49,15 @@ export default {
   data() {
     return {
       targetUser: null,
+      atComment: null,
       replyTo: "",
     };
   },
   methods: {
     dateFormat,
     showReply(target) {
-      this.targetUser = target;
+      this.atComment = target;
+      if (target != null) this.targetUser = target.user;
       this.$emit("click");
     },
   },

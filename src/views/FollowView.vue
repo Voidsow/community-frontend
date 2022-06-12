@@ -1,41 +1,46 @@
 <template>
   <v-card>
-    <v-list two-line>
+    <v-list v-if="!loading" two-line>
       <v-subheader class="font-weight-regular">
         <clickable-span
-          @click="state = followee"
+          @click="state = FOLLOWEE"
           text="TA关注的人"
-          :activate="state === followee"
+          :activate="state === FOLLOWEE"
           color="primary"
           class="mr-2"
         ></clickable-span>
         <clickable-span
-          @click="state = follower"
-          :activate="state === follower"
+          @click="state = FOLLOWER"
+          :activate="state === FOLLOWER"
           text="关注TA的人"
           color="primary"
         ></clickable-span>
       </v-subheader>
       <v-divider></v-divider>
 
-      <!-- 评论列表 -->
-      <template v-for="(user, index) in users">
+      <template v-for="(userDTO, index) in users">
         <v-list-item :key="`li${index}`">
-          <router-link :to="{ name: user, params: { id: user.id } }">
+          <router-link :to="{ name: 'user', params: { id: userDTO.user.id } }">
             <v-list-item-avatar size="50">
-              <img :src="user.headerUrl" />
+              <img :src="userDTO.user.headerUrl" />
             </v-list-item-avatar>
           </router-link>
           <v-list-item-content>
-            <v-list-item-title v-text="user.username"></v-list-item-title>
+            <router-link
+              :to="{ name: 'user', params: { id: userDTO.user.id } }"
+            >
+              <v-list-item-title
+                v-text="userDTO.user.username"
+              ></v-list-item-title>
+            </router-link>
             <v-list-item-subtitle>
-              <router-link :to="{ name: 'follow', params: { id: user.id } }">
-                关注 0
+              <router-link :to="`/user/${userDTO.user.id}/follow#followee`">
+                <span class="mr-3">关注 {{ userDTO.followeeNum }}</span>
               </router-link>
-              <router-link :to="`/user/${user.id}/follow#follower`"
-                >粉丝 0</router-link
-              >
-              点赞 0
+              <router-link :to="`/user/${userDTO.user.id}/follow#follower`">
+                <span class="mr-3">粉丝 {{ userDTO.followerNum }}</span>
+              </router-link>
+              <span>点赞 {{ userDTO.likeNum }}</span>
             </v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
@@ -48,16 +53,24 @@
           inset
         ></v-divider>
       </template>
+      <v-list-item v-if="users.length === 0" dense> TA还没有关注用户哦~ </v-list-item>
     </v-list>
+    <v-pagination
+      v-show="pageSum > 1"
+      v-model="page"
+      :total-visible="pageNum"
+      :length="pageSum"
+    ></v-pagination>
   </v-card>
 </template>
 
 <script>
 import ClickableSpan from "@/components/ClickableSpan.vue";
+import { getFetch, HOST } from "@/utils";
 export default {
   components: { ClickableSpan },
-  mounted(){
-      console.log(Location);
+  created() {
+    this.state = this.$route.hash.substring(1, this.$route.hash.length);
   },
   data() {
     return {
@@ -85,14 +98,45 @@ export default {
           username: "Minato",
         },
       ],
-      followee: 0,
-      follower: 1,
-      state: 1,
+      users: null,
+
+      FOLLOWEE: "followee",
+      FOLLOWER: "follower",
+      state: null,
+      page: 1,
+      pageSize: 5,
+      pageNum: 5,
+      pageSum: null,
+
+      loading: false,
     };
   },
   computed: {
-    users() {
-      return this.state === this.followee ? this.followees : this.followers;
+    observedUid() {
+      return this.$route.params.id;
+    },
+  },
+  methods: {
+    fetchData() {
+      this.loading = true;
+      getFetch(
+        HOST +
+          `user/${this.observedUid}/${this.state}?page=${this.page}&pageSize=${this.pageSize}`
+      )
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code === 200) {
+            alert(200);
+            this.users = resp.data.users;
+            this.pageSum = Math.ceil(resp.data.num);
+          }
+        });
+      this.loading = false;
+    },
+  },
+  watch: {
+    state() {
+      this.fetchData();
     },
   },
 };

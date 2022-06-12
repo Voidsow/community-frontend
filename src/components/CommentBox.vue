@@ -43,6 +43,7 @@ export default {
     //二级回复从属的一级评论
     targetComment: Object,
     //如果回复的是二级评论，需要记录被回复的用户
+    atComment: Object,
     targetUser: Object,
   },
   emit: ["publish"],
@@ -83,7 +84,10 @@ export default {
       let replyToSub = this.targetUser != null;
       if (isSub) {
         //被回复对象为二级评论，还需要记录被回复用户
-        if (replyToSub) data.replyToUid = this.targetUser.id;
+        if (replyToSub) {
+          data.replyToUid = this.targetUser.id;
+          data.atCommentId = this.atComment.id;
+        }
         data.replyTo = this.targetComment.id;
       }
       postFetch(HOST + "comment", data)

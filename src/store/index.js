@@ -7,6 +7,9 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     user: null,
+    messageBar: false,
+    query: "",
+    info: "",
   },
   getters: {
   },
@@ -16,6 +19,13 @@ export default new Vuex.Store({
     },
     logout(state) {
       state.user = null;
+    },
+    messagePop(state, message) {
+      state.messageBar = true;
+      state.info = message;
+    },
+    setQuery(state, query) {
+      state.query = query;
     }
   },
   actions: {

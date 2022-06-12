@@ -1,11 +1,9 @@
 <template>
-  <!-- <v-btn text block x-large > -->
-  <!-- </v-btn> -->
   <v-card flat class="py-5">
     <v-row>
       <!-- 左侧头像 -->
       <v-col cols="2" sm="1" class="pt-1 px-sm-1 px-md-1 px-lg-4 px-xl-6">
-        <router-link :to="`/user/${post.uid}`">
+        <router-link :to="`/user/${user.id}`">
           <v-avatar size="35" color="grey">
             <img :src="user.headerUrl" />
           </v-avatar>
@@ -15,20 +13,22 @@
       <v-hover v-slot="{ hover }">
         <v-col cols="8" sm="10" :class="{ 'on-hover': hover }">
           <router-link :to="`/post/${post.id}`">
-            <v-row class="text-subtitle-2 black--text text--darken-2">
-              {{ post.title }}
+            <v-row v-html="post.title" class="text-subtitle-2 black--text text--darken-2">
             </v-row>
             <v-row class="text-caption grey--text">
               <span>
-                <router-link :to="`/user/${post.uid}`">
+                <router-link :to="`/user/${user.id}`">
                   {{ user.username }}
                 </router-link>
                 发布于 {{ dateFormat(post.gmtCreate) }}
               </span>
             </v-row>
             <v-row class="text-caption grey--text text--darken-1">
-              <span class="d-inline text-truncate" style="max-width: 600px">
-                {{ post.content }}
+              <span
+                v-html="post.content"
+                class="d-inline text-truncate"
+                style="max-width: 600px"
+              >
               </span>
             </v-row>
           </router-link>
@@ -38,14 +38,22 @@
       <!-- 右边操作栏 -->
       <v-col cols="2" sm="1">
         <v-row>
-          <v-btn text x-small>
+          <v-btn text x-small plain :ripple="false">
             <v-icon small>mdi-comment-outline</v-icon>{{ post.commentNum }}
           </v-btn>
         </v-row>
         <v-row>
-          <v-btn v-bind="style" text x-small @click.stop="thumbUp">
-            <v-icon small>mdi-thumb-up-outline</v-icon>
-            {{ like }}&nbsp;&nbsp;
+          <v-btn
+            v-bind="style"
+            text
+            x-small
+            @click="like"
+            plain
+            :ripple="false"
+          >
+            <v-icon v-if="post.like" small>mdi-thumb-up</v-icon>
+            <v-icon v-else small>mdi-thumb-up-outline</v-icon>
+            {{ post.likeNum }}
           </v-btn>
         </v-row>
       </v-col>
@@ -54,10 +62,11 @@
 </template>
 
 <script>
-import { dateFormat } from "@/utils";
+import { dateFormat, HOST, POST, postFetch } from "@/utils";
 export default {
   name: "PostItem",
-  props: { post: Object, user: Object, like: Number },
+  props: { post: Object, user: Object },
+  emit: ["like"],
   created() {},
   data() {
     return {
@@ -66,21 +75,33 @@ export default {
     };
   },
   methods: {
+    like() {
+      postFetch(HOST + "like", {
+        type: POST,
+        id: this.post.id,
+      })
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code === 200) {
+            this.$emit("like", {
+              likeNum: resp.data.num,
+              like: resp.data.like,
+              post: this.post,
+            });
+          }
+        });
+    },
     dateFormat,
   },
   computed: {
     style() {
-      return this.like ? this.active : this.normal;
+      return this.post.like ? this.active : this.normal;
     },
   },
 };
 </script>
 
 <style>
-a {
-  color: black !important;
-  text-decoration: none;
-}
 .on-hover {
   cursor: pointer;
 }

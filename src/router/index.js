@@ -8,6 +8,10 @@ import MessageView from "@/views/MessageView.vue";
 import MessageLineView from "@/views/MessageLineView.vue";
 import FollowView from "@/views/FollowView.vue";
 import TestView from "@/views/TestView.vue";
+import NotificationView from "@/views/NotificationView.vue";
+import FollowNotify from "@/views/FollowNotify.vue";
+import LikeNotify from "@/views/LikeNotify.vue";
+import NotifyComment from "@/views/NotifyComment.vue";
 Vue.use(VueRouter);
 
 const routes = [
@@ -48,6 +52,25 @@ const routes = [
     path: "/test",
     name: "test",
     component: TestView
+  },
+  {
+    path: "/notifications",
+    name: "notification",
+    component: NotificationView,
+    children: [
+      {
+        path: "follow",
+        component: FollowNotify
+      },
+      {
+        path: "like",
+        component: LikeNotify
+      },
+      {
+        path: "comment",
+        component: NotifyComment
+      },
+    ]
   }
 ];
 

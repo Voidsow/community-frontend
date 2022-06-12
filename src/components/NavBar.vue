@@ -8,10 +8,34 @@
           <span class="font-weight-bold"> Stella</span>
         </router-link>
       </v-toolbar-title>
+
+      <!-- 搜索栏 -->
+      <v-spacer></v-spacer>
+      <v-toolbar dense color="rgba(255,255,255,0)" rounded flat>
+        <v-text-field
+          v-model="query"
+          filled
+          solo
+          dense
+          hide-details
+          single-line
+        ></v-text-field>
+
+        <v-btn icon @click="search">
+          <v-icon>mdi-magnify</v-icon>
+        </v-btn>
+      </v-toolbar>
+
       <v-spacer></v-spacer>
       <register-form v-if="!logined"></register-form>
       <login-form v-if="!logined"></login-form>
 
+      <!-- 通知按钮 -->
+      <v-btn to="/notifications" text rounded small>
+        <v-icon small>mdi-bell</v-icon>
+      </v-btn>
+
+      <!-- 个人中心 -->
       <v-menu v-if="logined" open-on-hover offset-y>
         <template v-slot:activator="{ on, attrs }">
           <router-link :to="{ name: 'user', params: { id: user.id } }">
@@ -71,6 +95,14 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
+    <v-snackbar v-model="snackbar" centered timeout="2000">
+      {{ message }}
+      <template v-slot:action="{ attrs }">
+        <v-btn text v-bind="attrs" @click="snackbar = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
   </nav>
 </template>
 
@@ -78,7 +110,7 @@
 import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
 import { HOST } from "@/utils";
-import { logout } from "@/store/mutation-type";
+import { logout, setQuery } from "@/store/mutation-type";
 export default {
   name: "NavBar",
   components: {
@@ -102,6 +134,7 @@ export default {
           route: "/message",
         },
       ],
+      query: "",
       HOST: HOST,
     };
   },
@@ -117,16 +150,44 @@ export default {
     logined() {
       return this.user !== null;
     },
+    snackbar: {
+      get() {
+        return this.$store.state.messageBar;
+      },
+      set(newVal) {
+        return (this.$store.state.messageBar = newVal);
+      },
+    },
+    message() {
+      return this.$store.state.info;
+    },
   },
   methods: {
     logout() {
-      alert("test");
       fetch(HOST + "logout")
         .then((resp) => resp.json())
         .then((resp) => {
           if (resp.code === 200) this.$store.commit(logout);
         });
     },
+    search() {
+      this.$router.push("/");
+      this.$store.commit(setQuery, this.query);
+    },
   },
 };
 </script>
+
+<style>
+a {
+  color: black !important;
+  text-decoration: none;
+}
+.no-border {
+  border: none;
+}
+em {
+  background-color: #d1c4e9;
+  font-style: normal;
+}
+</style>

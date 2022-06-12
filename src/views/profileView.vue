@@ -2,7 +2,7 @@
   <v-container>
     <v-row>
       <v-col>
-        <v-card class="mt-3 mb-6">
+        <v-card v-if="!loading" class="mt-3 mb-6">
           <v-img
             height="200px"
             class="align-end"
@@ -22,16 +22,11 @@
               >
                 私信
               </v-btn>
-              <v-btn
-                v-if="profile.isFollowed"
-                color="rgba(0, 0, 0, 0.2)"
-                class="white--text"
-              >
-                已关注
-              </v-btn>
-              <v-btn v-else color="primary">
-                <v-icon small>mdi-plus</v-icon>关注
-              </v-btn>
+              <follow-btn
+                :followed="profile.followed"
+                :uid="profile.user.id"
+                @follow="follow"
+              ></follow-btn>
             </v-card-title>
           </v-img>
 
@@ -50,14 +45,24 @@
               </v-col>
               <v-spacer></v-spacer>
               <v-col class="d-flex justify-end" align-self="center">
-                <v-btn class="pa-0 ma-0" plain :ripple="false">
-                  <div>点赞<br />{{ profile.likeNum }}</div>
-                </v-btn>
-                <v-btn class="pa-0 ma-0" plain :ripple="false">
+                <v-btn
+                  :to="`/user/${observedUid}/follow#followee`"
+                  class="pa-0 ma-0 d-none d-sm-flex"
+                  plain
+                  :ripple="false"
+                >
                   <div>关注<br />{{ profile.followeeNum }}</div>
                 </v-btn>
-                <v-btn class="pa-0 ma-0" plain :ripple="false">
+                <v-btn
+                  :to="`/user/${observedUid}/follow#follower`"
+                  class="pa-0 ma-0 d-none d-sm-flex"
+                  plain
+                  :ripple="false"
+                >
                   <div>粉丝<br />{{ profile.followerNum }}</div>
+                </v-btn>
+                <v-btn class="pa-0 ma-0 d-none d-sm-flex" plain :ripple="false">
+                  <div>点赞<br />{{ profile.likeNum }}</div>
                 </v-btn>
               </v-col>
             </v-row>
@@ -71,44 +76,51 @@
 
 <script>
 import { getFetch, HOST } from "@/utils";
+import FollowBtn from "@/components/FollowBtn.vue";
 export default {
+  components: { FollowBtn },
   data() {
+    let observedUid = this.$route.params.id;
     return {
+      profile: null,
+      observedUid,
       routes: [
-        { text: "动态", path: { name: "user", params: { id: 1 } } },
-        { text: "关注", path: { name: "follow", params: { id: 1 } } },
+        {
+          text: "动态",
+          path: { name: "user", params: { id: observedUid } },
+        },
+        { text: "关注", path: `/user/${observedUid}/follow#followee` },
       ],
 
-      profile: null,
+      loading: false,
     };
   },
-  computed: {
-    follow() {
-      return this.profile.isFollowed ? "已关注" : "关注";
-    },
-  },
+  computed: {},
   methods: {
     jumpTo(route) {
       this.$router.push(route);
     },
+    follow(followed) {
+      this.profile.followed = followed;
+      this.profile.followerNum += followed ? 1 : -1;
+    },
     fetchData() {
-      getFetch(HOST + `user/${this.$route.params.id}`)
+      getFetch(HOST + `user/${this.observedUid}`)
         .then((resp) => resp.json())
         .then((resp) => {
-          if (resp.code == 200) {
+          if (resp.code === 200) {
             this.profile = resp.data;
           }
         });
     },
   },
-  mounted() {
+  created() {
+    this.loading = true;
     this.fetchData();
+    this.loading = false;
   },
 };
 </script>
 
 <style scoped>
-.white-border {
-  border: 1em solid white;
-}
 </style>

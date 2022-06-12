@@ -35,10 +35,19 @@
         <v-icon v-if="status">mdi-check-circle</v-icon>
       </v-btn>
     </v-card-actions>
+    <v-snackbar timeout="1000" color="error" v-model="error">
+      {{ errorMsg }}
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="error = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-card>
 </template>
 
 <script>
+import { HOST, postFetch } from "@/utils";
 export default {
   data() {
     return {
@@ -54,8 +63,10 @@ export default {
       },
       status: false,
       text: "发布",
+      error: false,
+      errorMsg: "",
       titleRules: [
-        (v) => (v.length > 3 && v.length < 64) || "标题长度须在5~64个字内",
+        (v) => (v.length > 4 && v.length < 64) || "标题长度须在5~64个字内",
       ],
     };
   },
@@ -69,21 +80,27 @@ export default {
       if (!this.$refs.form.validate()) {
         return;
       }
-      new Promise((resolve) => {
-        this.loading = true;
-        setTimeout(() => {
-          resolve();
-        }, 1000);
-      }).then(() => {
-        this.loading = false;
-        this.status = true;
-        this.text = "成功";
-        setTimeout(() => {
-          this.text = "提交";
-          this.status = false;
-          this.$emit("close");
-        }, 1000);
-      });
+      postFetch(HOST + "post", {
+        title: this.title,
+        content: this.content,
+      })
+        .then((resp) => resp.json())
+        .then((resp) => {
+          if (resp.code === 200) {
+            this.loading = false;
+            this.status = true;
+            this.text = "发布成功";
+            setTimeout(() => {
+              this.text = "提交";
+              this.status = false;
+              this.$emit("close");
+            }, 1000);
+            this.$emit("publish", resp.data);
+          } else {
+            this.error = true;
+            this.errorMsg = resp.message;
+          }
+        });
     },
     clear() {
       this.title = "";
