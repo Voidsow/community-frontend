@@ -57,12 +57,12 @@
 </template>
 
 <script>
-import { getFetch, HOST, postFetch } from "@/utils";
+import { get, post } from "@/utils";
 export default {
   data() {
     return {
       msg: "",
-      messages: null,
+      messages: [],
       users: null,
 
       loading: false,
@@ -95,30 +95,27 @@ export default {
       );
     },
     sendMsg() {
-      postFetch(HOST + "chat", {
-        listener: this.talkToUid,
-        content: this.msg,
-      })
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code == 200) {
-            this.messages.push(resp.data);
+      if (this.msg)
+        post(
+          "chat",
+          {
+            listener: this.talkToUid,
+            content: this.msg,
+          },
+          (data) => {
+            this.messages.push(data);
             this.msg = "";
           }
-        });
+        );
     },
     fetchData() {
-      getFetch(HOST + `chat/${this.talkToUid}`)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.messages = resp.data.messages;
-            this.users = {
-              [this.talkToUid]: resp.data.talkTo,
-              [this.$store.state.user.id]: this.$store.state.user,
-            };
-          }
-        });
+      get(`chat/${this.talkToUid}`, (data) => {
+        this.messages = data.messages;
+        this.users = {
+          [this.talkToUid]: data.talkTo,
+          [this.$store.state.user.id]: this.$store.state.user,
+        };
+      });
     },
   },
 };

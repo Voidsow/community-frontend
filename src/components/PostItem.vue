@@ -13,7 +13,10 @@
       <v-hover v-slot="{ hover }">
         <v-col cols="8" sm="10" :class="{ 'on-hover': hover }">
           <router-link :to="`/post/${post.id}`">
-            <v-row v-html="post.title" class="text-subtitle-2 black--text text--darken-2">
+            <v-row
+              v-html="post.title"
+              class="text-subtitle-2 black--text text--darken-2"
+            >
             </v-row>
             <v-row class="text-caption grey--text">
               <span>
@@ -62,7 +65,7 @@
 </template>
 
 <script>
-import { dateFormat, HOST, POST, postFetch } from "@/utils";
+import { dateFormat, post, POST } from "@/utils";
 export default {
   name: "PostItem",
   props: { post: Object, user: Object },
@@ -76,20 +79,20 @@ export default {
   },
   methods: {
     like() {
-      postFetch(HOST + "like", {
-        type: POST,
-        id: this.post.id,
-      })
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.$emit("like", {
-              likeNum: resp.data.num,
-              like: resp.data.like,
-              post: this.post,
-            });
-          }
-        });
+      post(
+        "like",
+        {
+          type: POST,
+          id: this.post.id,
+        },
+        (data) => {
+          this.$emit("like", {
+            likeNum: data.num,
+            like: data.like,
+            post: this.post,
+          });
+        }
+      );
     },
     dateFormat,
   },

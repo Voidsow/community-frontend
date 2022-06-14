@@ -1,6 +1,6 @@
 <template>
   <v-card v-if="!loading">
-    <v-list three-line>
+    <v-list>
       <template v-for="(notification, index) in notifications">
         <v-list-item :key="`n${index}`">
           <router-link
@@ -23,7 +23,9 @@
               {{ dateFormat(notification.time) }}
             </v-list-item-title>
             <v-list-item-subtitle class="my-1">
-              <div class="my-2 text-subtitle-1 font-weight-bold">回复：{{ notification.reply }}</div>
+              <div class="my-2 text-subtitle-1 font-weight-bold">
+                回复：{{ notification.reply }}
+              </div>
               <div class="quote primary--text">
                 <router-link :to="`/post/${notification.postId}`">
                   {{ notification.replied }}
@@ -42,13 +44,13 @@
 </template>
 
 <script>
-import { dateFormat, getFetch, HOST } from "@/utils";
+import { dateFormat, get } from "@/utils";
 export default {
   data() {
     return {
       notifications: [],
 
-      loading: false,
+      loading: true,
       ENTITY: ["帖子", "评论"],
     };
   },
@@ -56,21 +58,16 @@ export default {
     dateFormat,
     fetchData() {
       this.loading = true;
-      getFetch(HOST + "notification/comment")
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            resp.data.forEach(
-              (notification) =>
-                (notification.time = new Date(notification.time))
-            );
-            this.notifications = resp.data;
-            this.loading = false;
-          }
-        });
+      get("notification/comment", (data) => {
+        data.forEach(
+          (notification) => (notification.time = new Date(notification.time))
+        );
+        this.notifications = data;
+        this.loading = false;
+      });
     },
   },
-  mounted() {
+  created() {
     this.fetchData();
   },
 };

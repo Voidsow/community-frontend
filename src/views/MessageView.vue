@@ -62,7 +62,6 @@
           v-model="page"
           :length="sum"
           :total-visible="pageNum"
-          @click="test"
         ></v-pagination>
       </v-col>
       <v-spacer></v-spacer>
@@ -71,11 +70,11 @@
 </template>
 
 <script>
-import { HOST, dateFormat, getFetch } from "@/utils";
+import { dateFormat, get } from "@/utils";
 export default {
   data() {
     return {
-      totalUnread: 8,
+      totalUnread: 0,
       conversations: null,
       loading: true,
       page: 1,
@@ -84,7 +83,7 @@ export default {
       pageNum: 7,
     };
   },
-  mounted: () => {
+  mounted() {
     this.fetchData();
   },
   methods: {
@@ -94,19 +93,15 @@ export default {
     },
     fetchData() {
       this.loading = true;
-      getFetch(HOST + `chat?page=${this.page}&size=${this.pageSize}`)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.totalUnread = resp.data.totalUnread;
-            this.conversations = resp.data.conversations;
-            this.conversations.forEach((e) => {
-              e.last.gmtCreate = new Date(e.last.gmtCreate);
-            });
-            this.sum = resp.data.sum;
-            this.loading = false;
-          }
+      get(`chat?page=${this.page}&size=${this.pageSize}`, (resp) => {
+        this.totalUnread = resp.totalUnread;
+        this.conversations = resp.conversations;
+        this.conversations.forEach((e) => {
+          e.last.gmtCreate = new Date(e.last.gmtCreate);
         });
+        this.sum = resp.sum;
+      });
+      this.loading = false;
     },
   },
   created() {

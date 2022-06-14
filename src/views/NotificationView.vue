@@ -56,7 +56,7 @@ export default {
           route: "/notifications/follow",
         },
       ],
-      select: 1,
+      select: 0,
     };
   },
   methods: {

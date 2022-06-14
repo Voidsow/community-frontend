@@ -66,7 +66,7 @@
 <script>
 import PostItem from "@/components/PostItem.vue";
 import PostForm from "@/components/PostForm.vue";
-import { getFetch, HOST } from "@/utils";
+import { get } from "@/utils";
 import { setQuery } from "@/store/mutation-type";
 export default {
   components: {
@@ -90,6 +90,9 @@ export default {
     query() {
       return this.$store.state.query;
     },
+    user() {
+      return this.$store.state.user;
+    },
   },
   methods: {
     like(data) {
@@ -104,23 +107,17 @@ export default {
     fetchData() {
       this.loading = true;
       let url =
-        HOST +
         (this.query !== "" ? `search?q=${this.query}&` : "?") +
         `page=${this.page}&size=${this.pageSize}`;
-      alert(url);
-      getFetch(url)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          let data = resp.data;
-          data.posts.forEach((post) => {
-            post.gmtCreate = new Date(post.gmtCreate);
-          });
-          if (this.posts !== null) console.log(this.posts.length);
-          this.posts = data.posts;
-          this.users = data.users;
-          this.length = data.lastPage;
-          this.loading = false;
+      get(url, (data) => {
+        data.posts.forEach((post) => {
+          post.gmtCreate = new Date(post.gmtCreate);
         });
+        this.posts = data.posts;
+        this.users = data.users;
+        this.length = data.lastPage;
+        this.loading = false;
+      });
       this.$store.commit(setQuery, "");
     },
   },
@@ -130,6 +127,11 @@ export default {
     },
     query(newVal) {
       if (newVal !== "") this.fetchData();
+    },
+    user(newVal) {
+      if (newVal) {
+        this.fetchData();
+      } else this.posts.forEach((post) => (post.like = false));
     },
   },
   mounted() {

@@ -31,8 +31,12 @@
       <login-form v-if="!logined"></login-form>
 
       <!-- 通知按钮 -->
-      <v-btn to="/notifications" text rounded small>
+      <v-btn v-if="user" to="/notifications" text rounded small>
         <v-icon small>mdi-bell</v-icon>
+      </v-btn>
+      <!-- 私信按钮 -->
+      <v-btn v-if="user" to="/message" text rounded small>
+        <v-icon small>mdi-comment-multiple</v-icon>
       </v-btn>
 
       <!-- 个人中心 -->
@@ -74,9 +78,9 @@
 
     <!-- 抽屉 -->
     <v-navigation-drawer v-model="open" app class="">
-      <v-row class="mt-3">
+      <v-row v-if="user" class="my-2">
         <v-col class="d-flex justify-center">
-          <v-avatar size="100"><img :src="'/ava.webp'" /></v-avatar>
+          <v-avatar size="100"><img :src="user.headerUrl" /></v-avatar>
         </v-col>
       </v-row>
       <v-list nav>
@@ -95,7 +99,12 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-    <v-snackbar v-model="snackbar" centered timeout="2000">
+    <v-snackbar
+      v-model="snackbar"
+      centered
+      timeout="2000"
+      color="snackBarColor"
+    >
       {{ message }}
       <template v-slot:action="{ attrs }">
         <v-btn text v-bind="attrs" @click="snackbar = false">
@@ -109,8 +118,8 @@
 <script>
 import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
-import { HOST } from "@/utils";
-import { logout, setQuery } from "@/store/mutation-type";
+import { HOST, post } from "@/utils";
+import { LOGOUT, setQuery } from "@/store/mutation-type";
 export default {
   name: "NavBar",
   components: {
@@ -120,27 +129,9 @@ export default {
   data() {
     return {
       open: false,
-      items: [
-        { title: "首页", icon: "mdi-home", route: "/" },
-        {
-          title: "个人中心",
-          icon: "mdi-account",
-          route: `/user`,
-        },
-        { title: "设置", icon: "mdi-cog", route: "/setting" },
-        {
-          title: "私信",
-          icon: "mdi-comment-multiple",
-          route: "/message",
-        },
-      ],
       query: "",
       HOST: HOST,
     };
-  },
-  created() {
-    sessionStorage.setItem("sessionId", Math.random());
-    alert(sessionStorage.getItem("sessionId"));
   },
 
   computed: {
@@ -148,7 +139,7 @@ export default {
       return this.$store.state.user;
     },
     logined() {
-      return this.user !== null;
+      return this.user;
     },
     snackbar: {
       get() {
@@ -158,17 +149,40 @@ export default {
         return (this.$store.state.messageBar = newVal);
       },
     },
+    snackBarColor() {
+      return this.$store.state.messageLevel;
+    },
     message() {
       return this.$store.state.info;
+    },
+    items() {
+      let tmp = [{ title: "首页", icon: "mdi-home", route: "/" }];
+      if (this.$store.state.user) {
+        tmp.push(
+          {
+            title: "个人中心",
+            icon: "mdi-account",
+            route: `/user/${this.user.id}`,
+          },
+          {
+            title: "私信",
+            icon: "mdi-comment-multiple",
+            route: "/message",
+          },
+          {
+            title: "通知",
+            icon: "mdi-bell",
+            route: { name: "notifyComment" },
+          },
+          { title: "设置", icon: "mdi-cog", route: "/setting" }
+        );
+      }
+      return tmp;
     },
   },
   methods: {
     logout() {
-      fetch(HOST + "logout")
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) this.$store.commit(logout);
-        });
+      post("logout", null, () => this.$store.commit(LOGOUT));
     },
     search() {
       this.$router.push("/");

@@ -53,7 +53,7 @@
           inset
         ></v-divider>
       </template>
-      <v-list-item v-if="users.length === 0" dense> TA还没有关注用户哦~ </v-list-item>
+      <v-list-item v-if="users.length === 0" dense>{{ nullTip }} </v-list-item>
     </v-list>
     <v-pagination
       v-show="pageSum > 1"
@@ -66,43 +66,18 @@
 
 <script>
 import ClickableSpan from "@/components/ClickableSpan.vue";
-import { getFetch, HOST } from "@/utils";
+import { get } from "@/utils";
 export default {
   components: { ClickableSpan },
-  created() {
-    this.state = this.$route.hash.substring(1, this.$route.hash.length);
-  },
   data() {
     return {
-      followers: [
-        {
-          id: 1,
-          headerUrl: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-          username: "Taro",
-        },
-        {
-          id: 2,
-          headerUrl: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-          username: "Jack",
-        },
-      ],
-      followees: [
-        {
-          id: 2,
-          headerUrl: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-          username: "Jack",
-        },
-        {
-          id: 3,
-          headerUrl: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-          username: "Minato",
-        },
-      ],
-      users: null,
+      followers: [],
+      followees: [],
+      users: [],
 
       FOLLOWEE: "followee",
       FOLLOWER: "follower",
-      state: null,
+      state: this.$route.hash.substring(1, this.$route.hash.length),
       page: 1,
       pageSize: 5,
       pageNum: 5,
@@ -115,27 +90,28 @@ export default {
     observedUid() {
       return this.$route.params.id;
     },
+    nullTip() {
+      return this.state === "followee"
+        ? "TA还没有关注的人哦~"
+        : "暂时还没有关注人TA哦~";
+    },
   },
   methods: {
     fetchData() {
       this.loading = true;
-      getFetch(
-        HOST +
-          `user/${this.observedUid}/${this.state}?page=${this.page}&pageSize=${this.pageSize}`
-      )
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            alert(200);
-            this.users = resp.data.users;
-            this.pageSum = Math.ceil(resp.data.num);
-          }
-        });
+      get(
+        `user/${this.observedUid}/${this.state}?page=${this.page}&pageSize=${this.pageSize}`,
+        (data) => {
+          this.users = data.users;
+          this.pageSum = Math.ceil(data.num);
+        }
+      );
       this.loading = false;
     },
   },
   watch: {
     state() {
+      window.location.hash = this.state;
       this.fetchData();
     },
   },

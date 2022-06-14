@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { HOST, postFetch } from "@/utils";
+import { post } from "@/utils";
 import { messagePop } from "@/store/mutation-type";
 export default {
   props: { followed: Boolean, uid: Number },
@@ -24,14 +24,7 @@ export default {
         this.$store.commit(messagePop, "不能关注自己哦~");
         return;
       }
-
-      postFetch(HOST + `follow/${this.uid}`)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.$emit("follow", resp.data);
-          }
-        });
+      post(`follow/${this.uid}`, null, (data) => this.$emit("follow", data));
     },
   },
 };

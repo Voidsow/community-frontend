@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="450px">
+  <v-dialog v-model="open" max-width="450px">
     <template v-slot:activator="{ on, attrs }">
       <v-btn text v-bind="attrs" v-on="on"> 登录 </v-btn>
     </template>
@@ -98,7 +98,7 @@ export default {
       captcha: "",
       longTerm: false,
 
-      dialog: false,
+      open: false,
       loading: false,
       success: false,
       error: false,

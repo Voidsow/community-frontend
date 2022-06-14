@@ -2,5 +2,5 @@
 
 export const authorize = 'authorize';
 export const messagePop = 'messagePop';
-export const logout = 'logout';
+export const LOGOUT = 'logout';
 export const setQuery = 'setQuery';

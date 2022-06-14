@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-list>
+    <v-list v-if="!loading">
       <template v-for="(like, index) in likes">
         <v-list-item :key="`n${index}`" two-line>
           <router-link :to="`/user/${like.user.id}`">
@@ -26,17 +26,19 @@
             </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-        <v-divider inset :key="`d${index}`" v-if="index<likes.length-1"></v-divider>
+        <v-divider
+          inset
+          :key="`d${index}`"
+          v-if="index < likes.length - 1"
+        ></v-divider>
       </template>
-      <v-list-item v-if="likes.length === 0">
-          暂时没有新消息哦~
-      </v-list-item>
+      <v-list-item v-if="likes.length === 0"> 暂时还没有新消息哦~ </v-list-item>
     </v-list>
   </v-card>
 </template>
 
 <script>
-import { dateFormat, getFetch, HOST, POST } from "@/utils";
+import { dateFormat, get, POST } from "@/utils";
 export default {
   data() {
     return {
@@ -52,15 +54,11 @@ export default {
     },
     fetchData() {
       this.loading = true;
-      getFetch(HOST + "notification/like")
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.likes = resp.data;
-            this.likes.forEach((like) => (like.time = new Date(like.time)));
-            this.loading = false;
-          }
-        });
+      get("notification/like", (data) => {
+        this.likes = data;
+        this.likes.forEach((like) => (like.time = new Date(like.time)));
+        this.loading = false;
+      });
     },
   },
   mounted() {

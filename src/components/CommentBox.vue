@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { postFetch, HOST } from "@/utils";
+import {post } from "@/utils";
 export default {
   props: {
     show: Boolean,
@@ -90,22 +90,18 @@ export default {
         }
         data.replyTo = this.targetComment.id;
       }
-      postFetch(HOST + "comment", data)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code == 200) {
-            let comment = resp.data;
-            comment.user = this.user;
-            comment.gmtCreate = new Date(comment.gmtCreate);
-            if (!isSub) {
-              comment.subComments = [];
-            } else if (replyToSub) comment.target = this.targetUser;
-            this.success = true;
-            setTimeout(() => (this.success = false), 1000);
-            this.$emit("publish", comment);
-          }
-        });
-      this.content = "";
+      post("comment", data, (data) => {
+        let comment = data;
+        comment.user = this.user;
+        comment.gmtCreate = new Date(comment.gmtCreate);
+        if (!isSub) {
+          comment.subComments = [];
+        } else if (replyToSub) comment.target = this.targetUser;
+        this.success = true;
+        setTimeout(() => (this.success = false), 1000);
+        this.$emit("publish", comment);
+        this.content = "";
+      });
     },
   },
 };

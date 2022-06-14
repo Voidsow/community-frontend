@@ -2,7 +2,7 @@
   <v-card v-if="!loading">
     <v-list>
       <template v-for="(user, index) in users">
-        <v-list-item :key="`u${index}`">
+        <v-list-item :key="`u${index}`" two-line>
           <router-link :to="{ name: 'user', params: { id: user.id } }">
             <v-list-item-avatar color="grey">
               <img :src="user.headerUrl" />
@@ -33,29 +33,25 @@
 </template>
 
 <script>
-import { dateFormat, getFetch, HOST } from "@/utils";
+import { dateFormat, get } from "@/utils";
 export default {
   data() {
     return {
       users: [],
       times: null,
 
-      loading: false,
+      loading: true,
     };
   },
   methods: {
     dateFormat,
     fetchData() {
       this.loading = true;
-      getFetch(HOST + "notification/follow")
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.users = resp.data.users;
-            this.times = resp.data.times.map((time) => (time = new Date(time)));
-            this.loading = false;
-          }
-        });
+      get("notification/follow", (data) => {
+        this.users = data.users;
+        this.times = data.times.map((time) => (time = new Date(time)));
+        this.loading = false;
+      });
     },
   },
   mounted() {

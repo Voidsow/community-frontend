@@ -5,6 +5,7 @@
       <v-col cols="12" sm="10" md="9">
         <v-card class="my-2">
           <v-list>
+            <!-- 帖子作者信息 -->
             <v-list-item>
               <router-link
                 :to="{ name: 'user', params: { id: author.user.id } }"
@@ -34,8 +35,10 @@
               </v-list-item-action>
             </v-list-item>
             <v-divider></v-divider>
+            <!-- 帖子内容 -->
             <v-list-item class="py-2">{{ post.content }}</v-list-item>
             <v-divider></v-divider>
+            <!-- 操作栏 -->
             <v-list-item dense>
               <clickable-span
                 class="mr-3"
@@ -103,7 +106,7 @@ import CommentView from "@/components/CommentView.vue";
 import CommentBox from "@/components/CommentBox.vue";
 import ClickableSpan from "@/components/ClickableSpan.vue";
 import FollowBtn from "@/components/FollowBtn.vue";
-import { dateFormat, HOST, postFetch } from "@/utils";
+import { dateFormat, get, post } from "@/utils";
 export default {
   components: {
     CommentView,
@@ -153,14 +156,10 @@ export default {
       this.comments.push(comment);
     },
     likeOrNot(entity, type) {
-      postFetch(HOST + "like", { type, id: entity.id })
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            entity.likeNum = resp.data.num;
-            entity.like = resp.data.like;
-          }
-        });
+      post("like", { type, id: entity.id }, (data) => {
+        entity.likeNum = data.num;
+        entity.like = data.like;
+      });
     },
     follow(followed) {
       this.author.followed = followed;
@@ -173,10 +172,9 @@ export default {
     },
     fetchData() {
       this.loading = true;
-      fetch(HOST + `post/${this.pid}/?page=${this.page}&size=${this.pageSize}`)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          let data = resp.data;
+      get(
+        `post/${this.pid}/?page=${this.page}&size=${this.pageSize}`,
+        (data) => {
           data.post.gmtCreate = new Date(data.post.gmtCreate);
           data.comments.forEach((comment) => {
             comment.gmtCreate = new Date(comment.gmtCreate);
@@ -192,7 +190,8 @@ export default {
           this.author = data.author;
           this.length = data.lastPage;
           this.loading = false;
-        });
+        }
+      );
     },
     dateFormat,
   },

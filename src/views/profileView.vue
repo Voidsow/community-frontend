@@ -6,9 +6,8 @@
           <v-img
             height="200px"
             class="align-end"
-            src="https://cdn.pixabay.com/photo/2020/07/12/07/47/bee-5396362_1280.jpg"
+            src="https://cdn.luogu.org/images/bg/fe/DSCF0530-shrink.jpg"
           >
-            <!-- src="https://cdn.luogu.com.cn/upload/usericon/8457.png" -->
             <v-card-title class="white--text mt-8 align-center">
               <v-avatar size="60">
                 <img alt="头像" :src="profile.user.headerUrl" />
@@ -16,7 +15,8 @@
               <span class="ml-3">{{ profile.user.username }}</span>
               <v-spacer></v-spacer>
               <v-btn
-                :to="{ name: 'chat', query: { uid: profile.user.id } }"
+                v-if="!user"
+                @click="jumpToChat"
                 color="rgba(0, 0, 0, 0.2)"
                 class="mr-3 white--text"
               >
@@ -33,11 +33,11 @@
           <v-card-text class="py-0">
             <v-row no-gutters justify="space-between">
               <v-col>
-                <v-tabs>
+                <v-tabs v-model="select">
                   <v-tab
-                    v-for="route in routes"
-                    :key="route.text"
-                    :to="route.path"
+                    v-for="(route, index) in routes"
+                    @click="jumpTo(route.path)"
+                    :key="'tab' + index"
                   >
                     {{ route.text }}
                   </v-tab>
@@ -46,7 +46,7 @@
               <v-spacer></v-spacer>
               <v-col class="d-flex justify-end" align-self="center">
                 <v-btn
-                  :to="`/user/${observedUid}/follow#followee`"
+                  @click="jumpToFollow('followee')"
                   class="pa-0 ma-0 d-none d-sm-flex"
                   plain
                   :ripple="false"
@@ -54,6 +54,7 @@
                   <div>关注<br />{{ profile.followeeNum }}</div>
                 </v-btn>
                 <v-btn
+                  @click="jumpToFollow('follower')"
                   :to="`/user/${observedUid}/follow#follower`"
                   class="pa-0 ma-0 d-none d-sm-flex"
                   plain
@@ -75,7 +76,7 @@
 </template>
 
 <script>
-import { getFetch, HOST } from "@/utils";
+import { get } from "@/utils";
 import FollowBtn from "@/components/FollowBtn.vue";
 export default {
   components: { FollowBtn },
@@ -87,37 +88,54 @@ export default {
       routes: [
         {
           text: "动态",
-          path: { name: "user", params: { id: observedUid } },
+          path: `/user/${observedUid}/timeLine`,
         },
         { text: "关注", path: `/user/${observedUid}/follow#followee` },
       ],
-
-      loading: false,
+      select: null,
+      loading: true,
     };
   },
-  computed: {},
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+  },
   methods: {
     jumpTo(route) {
       this.$router.push(route);
+    },
+    jumpToChat() {
+      if (this.user && this.observedUid !== this.user.id)
+        this.$router.push({
+          name: "chat",
+          query: { uid: this.profile.user.id },
+        });
+    },
+    jumpToFollow(hash) {
+      this.select = 1;
+      this.$router.push(`/user/${this.observedUid}/follow#${hash}`);
     },
     follow(followed) {
       this.profile.followed = followed;
       this.profile.followerNum += followed ? 1 : -1;
     },
     fetchData() {
-      getFetch(HOST + `user/${this.observedUid}`)
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.profile = resp.data;
-          }
-        });
+      get(`user/${this.observedUid}`, (data) => {
+        this.profile = data;
+        this.loading = false;
+      });
+    },
+  },
+  watch: {
+    user(newVal) {
+      if (newVal) this.fetchData();
+      else this.profile.followed = false;
     },
   },
   created() {
     this.loading = true;
     this.fetchData();
-    this.loading = false;
   },
 };
 </script>

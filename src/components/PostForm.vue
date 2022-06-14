@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { HOST, postFetch } from "@/utils";
+import { post } from "@/utils";
 export default {
   data() {
     return {
@@ -80,27 +80,28 @@ export default {
       if (!this.$refs.form.validate()) {
         return;
       }
-      postFetch(HOST + "post", {
-        title: this.title,
-        content: this.content,
-      })
-        .then((resp) => resp.json())
-        .then((resp) => {
-          if (resp.code === 200) {
-            this.loading = false;
-            this.status = true;
-            this.text = "发布成功";
-            setTimeout(() => {
-              this.text = "提交";
-              this.status = false;
-              this.$emit("close");
-            }, 1000);
-            this.$emit("publish", resp.data);
-          } else {
-            this.error = true;
-            this.errorMsg = resp.message;
-          }
-        });
+      post(
+        "post",
+        {
+          title: this.title,
+          content: this.content,
+        },
+        (data) => {
+          this.loading = false;
+          this.status = true;
+          this.text = "发布成功";
+          setTimeout(() => {
+            this.text = "提交";
+            this.status = false;
+            this.$emit("close");
+          }, 1000);
+          this.$emit("publish", data);
+        },
+        (message) => {
+          this.error = true;
+          this.errorMsg = message;
+        }
+      );
     },
     clear() {
       this.title = "";
